@@ -1,3 +1,4 @@
+
 import React, { useState, useRef, useEffect } from 'react';
 import DeviceCard from './DeviceCard';
 import { Bell, Settings, ArrowRight, Thermometer, Droplets, Cctv, Leaf, Zap, HeartPulse, CloudSun, Eye } from 'lucide-react';
@@ -126,7 +127,8 @@ const HomeScreen: React.FC<HomeScreenProps> = ({ onNavigateToDevice, onNavigateT
           {roomsRaw.map((roomKey, index) => (
             <button
               key={roomKey}
-              ref={el => roomRefs.current[index] = el}
+              // FIX: The ref callback function should not return a value. Encapsulating the assignment in curly braces ensures it returns void.
+              ref={el => { roomRefs.current[index] = el; }}
               onClick={() => handleRoomChange(roomKey)}
               className={`px-4 py-2 rounded-full text-sm font-semibold transition-colors duration-300 ${activeRoom === roomKey ? 'bg-blue-600 text-white' : 'bg-[#FFFEF5] text-gray-600'}`}
             >

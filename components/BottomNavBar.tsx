@@ -1,3 +1,4 @@
+
 import React from 'react';
 import { Home, Zap, Settings, User } from 'lucide-react';
 import { View } from '../types';
@@ -16,7 +17,8 @@ const NavItem: React.FC<{
 }> = ({ icon, label, isActive, onClick }) => {
     return (
         <button onClick={onClick} className={`flex flex-col items-center transition-colors ${isActive ? 'text-blue-600' : 'text-gray-400 hover:text-blue-600'}`}>
-            {React.cloneElement(icon as React.ReactElement, { className: `fill-current ${isActive ? 'text-blue-600' : 'text-transparent'}` })}
+            {/* FIX: Add a more specific type assertion to inform TypeScript that the cloned element accepts a className prop. */}
+            {React.cloneElement(icon as React.ReactElement<{ className?: string }>, { className: `fill-current ${isActive ? 'text-blue-600' : 'text-transparent'}` })}
             <span className={`text-xs mt-1 font-bold`}>{label}</span>
         </button>
     );
@@ -40,7 +42,8 @@ const BottomNavBar: React.FC<BottomNavBarProps> = ({ activeView, onNavigate }) =
                     onClick={() => onNavigate(item.view)} 
                     className={`flex flex-col items-center transition-colors ${activeView === item.view ? 'text-blue-600' : 'text-gray-400 hover:text-blue-600'}`}
                 >
-                    {React.cloneElement(item.icon as React.ReactElement, { 
+                    {/* FIX: Add a more specific type assertion to inform TypeScript that the cloned element accepts a className prop. */}
+                    {React.cloneElement(item.icon as React.ReactElement<{ className?: string }>, { 
                         className: `transition-all ${activeView === item.view ? 'fill-blue-600' : ''}`
                     })}
                     <span className={`text-xs mt-1 ${activeView === item.view ? 'font-bold' : 'font-semibold'}`}>{item.label}</span>

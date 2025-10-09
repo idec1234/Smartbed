@@ -1,3 +1,4 @@
+
 import React, { useState, useRef, createContext, useContext, useEffect, useMemo } from 'react';
 import HomeScreen from './components/HomeScreen';
 import DeviceScreen from './components/DeviceScreen';
@@ -100,6 +101,7 @@ const translations = {
     motionDetected: "Motion Detected",
     allClear: "All Clear",
     percent: "%",
+    developedBy: "Developed by JABR TECHNOLOGY",
   },
   ar: {
     smarter: "أكثر ذكاءً",
@@ -188,6 +190,7 @@ const translations = {
     motionDetected: "تم كشف حركة",
     allClear: "لا يوجد حركة",
     percent: "٪",
+    developedBy: "تم التطوير بواسطة JABR TECHNOLOGY",
   },
 };
 
@@ -241,7 +244,8 @@ const LanguageProvider: React.FC<{ children: React.ReactNode }> = ({ children })
   
   const value = useMemo(() => ({
       language,
-      direction: language === 'ar' ? 'rtl' : 'ltr',
+      // FIX: Cast the result of the ternary operator to the 'Direction' type to satisfy the LanguageContextType interface.
+      direction: (language === 'ar' ? 'rtl' : 'ltr') as Direction,
       t,
       setLanguage,
   }), [language]);
