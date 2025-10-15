@@ -1,5 +1,5 @@
 
-import React, { createContext, useContext, useEffect, useState, ReactNode } from 'react';
+import React, { createContext, useContext, useEffect, useState, ReactNode, useRef } from 'react';
 
 // Make Paho available in the component
 declare var Paho: any;
@@ -40,7 +40,6 @@ const TOPICS_TO_SUBSCRIBE = [
   '/data/159753/esp32_2/aqi',
   '/data/159753/esp32_2/sound_level',
   '/data/159753/esp32_2/motion_detect',
-  // Assuming state topics for outputs, will act as source of truth if they exist
   '/data/159753/esp32_2/output1_state',
   '/data/159753/esp32_2/output2_state',
   '/data/159753/esp32_2/output3_state',
@@ -50,7 +49,8 @@ const TOPICS_TO_SUBSCRIBE = [
 ];
 
 export const MQTTProvider: React.FC<{ children: ReactNode }> = ({ children }) => {
-  const [client, setClient] = useState<any>(null);
+  const clientRef = useRef<any>(null);
+  const isConnectingRef = useRef(false);
   const [isConnected, setIsConnected] = useState(false);
   const [sensorData, setSensorData] = useState<SensorData>({
     temperature: 24, humidity: 55, heartRate: 72, spo2: 98, aqi: 45,
@@ -64,17 +64,36 @@ export const MQTTProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
       console.error("Paho MQTT client is not available.");
       return;
     }
-    
+
     const mqttClient = new Paho.Client(BROKER_HOST, BROKER_PORT, CLIENT_ID);
-    
-    mqttClient.onConnectionLost = (responseObject: any) => {
-      if (responseObject.errorCode !== 0) {
-        console.error('onConnectionLost:', responseObject.errorMessage);
-        setIsConnected(false);
-      }
+    clientRef.current = mqttClient;
+
+    const onConnect = () => {
+      console.log('Connected to MQTT Broker!');
+      isConnectingRef.current = false;
+      setIsConnected(true);
+      TOPICS_TO_SUBSCRIBE.forEach(topic => {
+        mqttClient.subscribe(topic);
+      });
     };
 
-    mqttClient.onMessageArrived = (message: any) => {
+    const onFailure = (err: any) => {
+        console.error('MQTT Connection failed:', err.errorMessage);
+        isConnectingRef.current = false;
+        setIsConnected(false);
+        // Retry connection after a delay
+        setTimeout(connect, 5000);
+    };
+
+    const onConnectionLost = (responseObject: any) => {
+      setIsConnected(false);
+      if (responseObject.errorCode !== 0) {
+        console.error(`MQTT connection lost: ${responseObject.errorMessage}. The client will attempt to reconnect automatically.`);
+      }
+      // Paho client with `reconnect: true` will handle reconnection.
+    };
+
+    const onMessageArrived = (message: any) => {
       const topic = message.destinationName;
       const payload = message.payloadString;
       
@@ -102,59 +121,72 @@ export const MQTTProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
       });
     };
 
-    const onConnect = () => {
-      console.log('Connected to MQTT Broker!');
-      setIsConnected(true);
-      TOPICS_TO_SUBSCRIBE.forEach(topic => {
-        mqttClient.subscribe(topic);
-      });
-    };
-
-    try {
+    // Assign callbacks
+    mqttClient.onConnectionLost = onConnectionLost;
+    mqttClient.onMessageArrived = onMessageArrived;
+    
+    const connect = () => {
+      if (clientRef.current?.isConnected() || isConnectingRef.current) {
+        return;
+      }
+      isConnectingRef.current = true;
+      console.log('Attempting MQTT connection...');
+      try {
         mqttClient.connect({
           onSuccess: onConnect,
+          onFailure: onFailure,
           useSSL: true,
-          onFailure: (err: any) => {
-            console.error('MQTT Connection failed:', err.errorMessage);
-          }
+          keepAliveInterval: 20, // More frequent keep-alive to prevent timeouts
+          cleanSession: true,
+          timeout: 10,
+          reconnect: true // Enable automatic reconnect
         });
-    } catch (error) {
+      } catch (error) {
         console.error("Error initiating MQTT connection:", error);
-    }
-
-
-    setClient(mqttClient);
+        isConnectingRef.current = false;
+        setTimeout(connect, 5000); // Retry on synchronous error
+      }
+    };
+    
+    connect();
 
     return () => {
-      if (mqttClient && mqttClient.isConnected()) {
-        mqttClient.disconnect();
-        setIsConnected(false);
+      if (clientRef.current && clientRef.current.isConnected()) {
+        try {
+          clientRef.current.disconnect();
+        } catch (err) {
+          console.error("Error disconnecting MQTT client:", err);
+        }
       }
+      isConnectingRef.current = false;
+      clientRef.current = null;
     };
   }, []);
 
   const sendCommand = (topic: string, value: string) => {
-    if (client && client.isConnected()) {
-      const message = new Paho.Message(value);
-      message.destinationName = topic;
-      client.send(message);
+    if (clientRef.current && clientRef.current.isConnected()) {
+      try {
+        const message = new Paho.Message(value);
+        message.destinationName = topic;
+        clientRef.current.send(message);
 
-       // Optimistic UI update for outputs
-       // Example topic: /cmd/159753/esp32_2/output1
-       const topicParts = topic.split('/');
-       if (topicParts.length > 2 && topicParts[1] === 'cmd') {
-           const command = topicParts[topicParts.length - 1]; // e.g., 'output1'
-           if (command.startsWith('output')) {
-               const stateKey = `${command}State` as keyof SensorData;
-               setSensorData(prevData => {
-                   if (Object.prototype.hasOwnProperty.call(prevData, stateKey)) {
-                       return { ...prevData, [stateKey]: value === '1' };
-                   }
-                   return prevData;
-               });
-           }
-       }
-
+        // Optimistic UI update for outputs
+        const topicParts = topic.split('/');
+        if (topicParts.length > 2 && topicParts[1] === 'cmd') {
+            const command = topicParts[topicParts.length - 1];
+            if (command.startsWith('output')) {
+                const stateKey = `${command}State` as keyof SensorData;
+                setSensorData(prevData => {
+                    if (Object.prototype.hasOwnProperty.call(prevData, stateKey)) {
+                        return { ...prevData, [stateKey]: value === '1' };
+                    }
+                    return prevData;
+                });
+            }
+        }
+      } catch (err) {
+        console.error("Error sending MQTT command:", err);
+      }
     } else {
       console.error('MQTT client not connected. Cannot send command.');
     }

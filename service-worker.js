@@ -1,19 +1,23 @@
 const CACHE_NAME = 'smarter-living-v1';
 const urlsToCache = [
-  '/',
-  '/index.html',
-  '/index.tsx',
-  '/vite.svg',
+  './',
+  './index.html',
+  './manifest.json',
+  './icon-192x192.png',
+  './icon-512x512.png',
+  './index.tsx',
+  './vite.svg',
   'https://cdn.tailwindcss.com',
   'https://cdnjs.cloudflare.com/ajax/libs/paho-mqtt/1.1.0/paho-mqtt.min.js',
   'https://aistudiocdn.com/lucide-react@^0.544.0',
   'https://aistudiocdn.com/react@^19.2.0',
   'https://aistudiocdn.com/react-dom@^19.2.0/client',
   'https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=Tajawal:wght@400;700&display=swap',
-  'https://images.unsplash.com/photo-1618220179428-22790b461013?q=80&w=2127&auto=format&fit=crop&ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D',
-  'https://images.unsplash.com/photo-1519892300165-cb5542fb47c7?q=80&w=2601&auto=format&fit=crop',
+  'https://images.unsplash.com/photo-1618220179428-22790b461013?q=80&w=2127&auto-format&fit=crop&ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D',
+  'https://images.unsplash.com/photo-1519892300165-cb5542fb47c7?q=80&w=2601&auto-format&fit=crop',
   'https://picsum.photos/seed/user-avatar/48/48',
   'https://picsum.photos/seed/user-avatar/96/96',
+  'https://unpkg.com/@babel/standalone/babel.min.js'
 ];
 
 self.addEventListener('install', (event) => {
