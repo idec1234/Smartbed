@@ -1,3 +1,4 @@
+
 import React, { createContext, useContext, useEffect, useState, ReactNode } from 'react';
 
 // Make Paho available in the component
@@ -27,8 +28,8 @@ interface MQTTContextType {
 
 const MQTTContext = createContext<MQTTContextType | undefined>(undefined);
 
-const BROKER_HOST = 'test.mosquitto.org';
-const BROKER_PORT = 8081;
+const BROKER_HOST = 'broker.hivemq.com';
+const BROKER_PORT = 8884;
 const CLIENT_ID = `smart-home-ui-${Math.random().toString(16).substr(2, 8)}`;
 
 const TOPICS_TO_SUBSCRIBE = [
@@ -68,7 +69,7 @@ export const MQTTProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
     
     mqttClient.onConnectionLost = (responseObject: any) => {
       if (responseObject.errorCode !== 0) {
-        console.log('onConnectionLost:' + responseObject.errorMessage);
+        console.error('onConnectionLost:', responseObject.errorMessage);
         setIsConnected(false);
       }
     };
@@ -114,7 +115,7 @@ export const MQTTProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
           onSuccess: onConnect,
           useSSL: true,
           onFailure: (err: any) => {
-            console.error('MQTT Connection failed:', err);
+            console.error('MQTT Connection failed:', err.errorMessage);
           }
         });
     } catch (error) {

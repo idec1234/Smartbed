@@ -108,7 +108,7 @@ const HomeScreen: React.FC<HomeScreenProps> = ({ onNavigateToDevice, onNavigateT
             <img src="https://picsum.photos/seed/user-avatar/48/48" alt="User Avatar" className="w-12 h-12 rounded-full" />
             <div>
                 <p className="text-gray-500 text-sm">{t('welcomeBack')}</p>
-                <p className="font-bold text-lg text-gray-900">Andrew</p>
+                <p className="font-bold text-lg text-gray-900">Mohammed</p>
             </div>
         </div>
         <div className="flex items-center gap-x-3">
