@@ -4,22 +4,22 @@
   "description": "A sleek and modern UI for a smart home application, allowing users to monitor and control various devices in their home, from air conditioners to light bulbs.",
   "icons": [
     {
-      "src": "/vite.svg",
+      "src": "/Smartbed/vite.svg",
       "type": "image/svg+xml",
       "sizes": "192x192 512x512"
     },
     {
-      "src": "/icon-192x192.png",
+      "src": "/Smartbed/icon-192x192.png",
       "type": "image/png",
       "sizes": "192x192"
     },
     {
-      "src": "/icon-512x512.png",
+      "src": "/Smartbed/icon-512x512.png",
       "type": "image/png",
       "sizes": "512x512"
     },
     {
-      "src": "/icon-512x512.png",
+      "src": "/Smartbed/icon-512x512.png",
       "type": "image/png",
       "sizes": "512x512",
       "purpose": "maskable"
